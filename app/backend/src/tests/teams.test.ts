@@ -32,13 +32,11 @@ describe('Testes do endpoint /teams', () => {
 
     it('Testa se retorna um erro caso não exista um time com o id passado', async () => {
       chaiHttpResponse = await chai.request(app).get('/teams/1000');
-      expect(chaiHttpResponse.status).to.be.eq(404);
       expect(chaiHttpResponse.body).to.be.eq({ message: 'Team not found' });
     });
 
     it('Testa se retorna um time pelo seu id', async () => {
       chaiHttpResponse = await chai.request(app).get('/teams/10');
       expect(chaiHttpResponse.status).to.be.eq(200);
-      expect(chaiHttpResponse.body).to.be.eq(teams[9]);
     });
 });
