@@ -1,5 +1,5 @@
 import { Model, INTEGER, STRING } from 'sequelize';
-import IUser from '../../interfaces/IUser';
+import { IUser } from '../../interfaces/IUser';
 import db from '.';
 
 export default class UserModel extends Model implements IUser {
@@ -25,4 +25,5 @@ UserModel.init({
   sequelize: db,
   timestamps: false,
   underscored: true,
+  modelName: 'users',
 });
