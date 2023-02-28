@@ -12,7 +12,7 @@ export default class TeamService {
   }
 
   async findById(id: number): Promise<ITeam> {
-    const result = await this._model.findByPk(id);
+    const result = await this._model.findOne({ where: { id } });
 
     if (!result) throw new Error('Team not found');
 
