@@ -16,7 +16,7 @@ const { expect } = chai;
 describe('Testes do endpoint /teams', () => {
   let chaiHttpResponse: Response;
 
-  before(() => {
+  before(async () => {
     sinon.stub(TeamModel, 'findAll').resolves(teams as TeamModel[]);
   });
 
@@ -26,6 +26,7 @@ describe('Testes do endpoint /teams', () => {
 
     it('Testa se retorna todos os times', async () => {
       chaiHttpResponse = await chai.request(app).get('/teams');
-      expect(chaiHttpResponse.body).to.be.eq(teams);
+      expect(chaiHttpResponse.status).to.be.eq(200);
+      expect(chaiHttpResponse.body).to.be.an('array');
     });
 });

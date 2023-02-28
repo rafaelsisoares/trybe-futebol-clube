@@ -1,6 +1,4 @@
-import ITeam from '../../interfaces/ITeam';
-
-const teams: ITeam[] = [
+const teams = [
     {
       "id": 1,
       "teamName": "Avaí/Kindermann"
