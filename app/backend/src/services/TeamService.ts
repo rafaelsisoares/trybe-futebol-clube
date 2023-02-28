@@ -10,4 +10,12 @@ export default class TeamService {
     const teams: ITeam[] = result.map((team) => team.dataValues);
     return teams;
   }
+
+  async findById(id: number): Promise<ITeam> {
+    const result = await this._model.findByPk(id);
+
+    if (!result) throw new Error('Team not found');
+
+    return result.dataValues;
+  }
 }
