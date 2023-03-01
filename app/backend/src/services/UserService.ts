@@ -16,7 +16,7 @@ export default class UserService {
 
     if (!result) throw new Error('Invalid email or password');
 
-    if (bcrypt.compareSync(password, result.dataValues.password)) {
+    if (!bcrypt.compareSync(password, result.dataValues.password)) {
       throw new Error('Invalid email or password');
     }
 
