@@ -12,17 +12,12 @@ export default class UserService {
     const { email, password } = data;
 
     const { error } = loginDataSchema.validate(data);
-    if (error) {
-      throw new Error('Invalid email or password');
-    }
 
     const result = await this._model.findOne({
       where: { email },
     });
 
-    if (!result) throw new Error('Invalid email or password');
-
-    if (!bcrypt.compareSync(password, result.dataValues.password)) {
+    if (error || !result || !bcrypt.compareSync(password, result.dataValues.password)) {
       throw new Error('Invalid email or password');
     }
 
