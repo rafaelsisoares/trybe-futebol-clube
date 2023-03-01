@@ -9,7 +9,7 @@ import Example from '../database/models/ExampleModel';
 import UserModel from '../database/models/UserModel';
 
 import { Response } from 'superagent';
-import { token } from './mocks/users.mock';
+import { jwtVerifyMock, token } from './mocks/users.mock';
 
 chai.use(chaiHttp);
 
@@ -87,10 +87,12 @@ describe('Testes do endpoint /login', () => {
   describe('Testes do endpoint /login/role', () => {
     before(() => {
       sinon.stub(jwt, 'sign').resolves(token);
+      sinon.stub(jwt, 'verify').resolves(jwtVerifyMock);
     });
     
     after(() => {
       (jwt.sign as sinon.SinonStub).restore();
+      (jwt.verify as sinon.SinonStub).restore();
     })
     describe('Testa se', () => {
       it('retorna uma mensagem de erro se não houver token', async () => {
@@ -100,6 +102,7 @@ describe('Testes do endpoint /login', () => {
           expect(res).to.have.status(401);
           expect(res.body.message).to.be.eq('Token not found');
         });
+      });
 
         it('retorna uma mensagem de erro se o token for invalido', async () => {
           await chai.request(app)
@@ -122,4 +125,3 @@ describe('Testes do endpoint /login', () => {
         });
       });
     });
-  });
