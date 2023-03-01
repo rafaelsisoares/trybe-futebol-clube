@@ -39,6 +39,7 @@ describe('Testes do endpoint /login', () => {
         expect(res.body.message).to.be.eq('All fields must be filled');
         done();
       });
+    });
 
     it('retorna uma mensagem de erro se a senha estiver ausente', async (done) => {
       chaiHttpResponse = await chai.request(app)
@@ -58,9 +59,8 @@ describe('Testes do endpoint /login', () => {
           expect(res).to.have.status(200);
           expect(res.body.token).to.be.an('string');
           done();
-        })
-      })
+        });
+      });
     });
   });
-})
-})
+});
