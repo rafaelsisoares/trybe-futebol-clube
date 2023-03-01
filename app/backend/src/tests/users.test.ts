@@ -1,5 +1,6 @@
 import * as sinon from 'sinon';
 import * as chai from 'chai';
+import * as jwt from 'jsonwebtoken';
 // @ts-ignore
 import chaiHttp = require('chai-http');
 
@@ -8,6 +9,7 @@ import Example from '../database/models/ExampleModel';
 import UserModel from '../database/models/UserModel';
 
 import { Response } from 'superagent';
+import { token } from './mocks/users.mock';
 
 chai.use(chaiHttp);
 
@@ -77,6 +79,46 @@ describe('Testes do endpoint /login', () => {
         .then((res) => {
           expect(res).to.have.status(200);
           expect(res.body.token).to.be.an('string');
+        });
+      });
+    });
+  });
+  
+  describe('Testes do endpoint /login/role', () => {
+    before(() => {
+      sinon.stub(jwt, 'sign').resolves(token);
+    });
+    
+    after(() => {
+      (jwt.sign as sinon.SinonStub).restore();
+    })
+    describe('Testa se', () => {
+      it('retorna uma mensagem de erro se não houver token', async () => {
+        await chai.request(app)
+        .get('/login/role')
+        .then((res) => {
+          expect(res).to.have.status(401);
+          expect(res.body.message).to.be.eq('Token not found');
+        });
+
+        it('retorna uma mensagem de erro se o token for invalido', async () => {
+          await chai.request(app)
+          .get('/login/role')
+          .set('Authorization', 'token23245234dsv')
+          .then((res) => {
+            expect(res).to.have.status(401);
+            expect(res.body.message).to.be.eq('Token must be a valid token');
+          });
+        });
+
+        it('retorna o tipo de usuario se o token for valido', async () => {
+          await chai.request(app)
+          .get('/login/role')
+          .set('Authorization', token)
+          .then((res) => {
+            expect(res).to.have.status(200);
+            expect(res.body).to.be.eq({ role: 'admin' });
+          });
         });
       });
     });
