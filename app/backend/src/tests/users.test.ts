@@ -14,53 +14,70 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('Testes do endpoint /login', () => {
-  let chaiHttpResponse: Response;
-  before(async () => {
+
+  beforeEach(async () => {
     sinon.stub(UserModel, 'findOne').resolves({
       id: 1,
-      username: 'user',
-      role: 'role',
-      email: 'user@example.com',
-      password: 'p4$$w0rD'
+      username: 'admin',
+      role: 'admin',
+      email: 'admin@admin.com',
+      password: 'secret_admin'
     } as UserModel)
   })
 
-  after(() => {
+  afterEach(() => {
     (UserModel.findOne as sinon.SinonStub).restore();
   })
 
   describe('Testa se', () => {
-    it('retorna uma mensagem de erro se o email estiver ausente', async (done) => {
-      chaiHttpResponse = await chai.request(app)
+    it('retorna uma mensagem de erro se o email estiver ausente', async () => {
+      await chai.request(app)
       .post('/login')
       .send({ password: 'p4$$w0rD' })
-      .end((err, res) => {
+      .then((res) => {
         expect(res).to.have.status(400);
         expect(res.body.message).to.be.eq('All fields must be filled');
-        done();
       });
     });
 
-    it('retorna uma mensagem de erro se a senha estiver ausente', async (done) => {
-      chaiHttpResponse = await chai.request(app)
+    it('retorna uma mensagem de erro se a senha estiver ausente', async () => {
+      await chai.request(app)
       .post('/login')
       .send({ email: 'user@example.com' })
-      .end((err, res) => {
+      .then((res) => {
         expect(res).to.have.status(400);
         expect(res.body.message).to.be.eq('All fields must be filled');
-        done();
       });
+    });
 
-      it('retorna um token se os dados estiverem corretos', async (done) => {
-        chaiHttpResponse = await chai.request(app)
+      it('retorna uma mensagem de erro se o email for invalido', async () => {
+        await chai.request(app)
         .post('/login')
-        .send({ email: 'user@example.com', password: 'p4$$w0rD' })
-        .end((err, res) => {
+        .send({ email: 'user.example.com', password: 'p4$$w0rD' })
+        .then((res) => {
+          expect(res).to.have.status(401);
+          expect(res.body.message).to.be.eq('Invalid email or password');
+        })
+      })
+
+      it('retorna uma mensagem de erro se a senha for invalida', async () => {
+        await chai.request(app)
+        .post('/login')
+        .send({ email: 'user@example.com', password: '123' })
+        .then((res) => {
+          expect(res).to.have.status(401);
+          expect(res.body.message).to.be.eq('Invalid email or password');
+        })
+      })
+
+      it('retorna um token se os dados estiverem corretos', async () => {
+        await chai.request(app)
+        .post('/login')
+        .send({ email: 'admin@admin.com', password: 'secret_admin' })
+        .then((res) => {
           expect(res).to.have.status(200);
           expect(res.body.token).to.be.an('string');
-          done();
         });
       });
     });
   });
-});
