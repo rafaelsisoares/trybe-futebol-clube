@@ -26,4 +26,19 @@ export default class MatchesService {
 
     return result;
   }
+
+  async finishMatch(id: number): Promise<boolean> {
+    const [match] = await this._model.update(
+      {
+        inProgress: false,
+      },
+      {
+        where: { id },
+      },
+    );
+
+    if (match !== 1) return false;
+
+    return true;
+  }
 }
