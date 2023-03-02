@@ -14,16 +14,16 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('Testes do endpoint /matches', () => {
-   before(async () => {
-     sinon.stub(MatchesModel, "findAll")
-      .resolves(matches as unknown as MatchesModel[]);
-  });
-
-   after(()=>{
-   (MatchesModel.findAll as sinon.SinonStub).restore();
-  });
-
   describe('Testa se', () => {
+    before(async () => {
+      sinon.stub(MatchesModel, "findAll")
+       .resolves(matches as unknown as MatchesModel[]);
+   });
+ 
+    after(()=>{
+    (MatchesModel.findAll as sinon.SinonStub).restore();
+   });
+
     it('retorna todas as partidas', async () => {
       await chai.request(app).get('/matches').then((res) => {
         expect(res).to.have.status(200);
