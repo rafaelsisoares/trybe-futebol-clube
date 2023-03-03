@@ -8,6 +8,6 @@ const router = Router();
 const userController = new UserController();
 
 router.post('/', checkLoginInput, (req, res) => userController.login(req, res));
-router.get('/role', checkToken);
+router.get('/role', checkToken, (req, res) => userController.getRole(req, res));
 
 export default router;

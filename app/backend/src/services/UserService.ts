@@ -4,6 +4,7 @@ import UserModel from '../database/models/UserModel';
 import { ILogin } from '../interfaces/IUser';
 import generateToken from '../utils/generateToken';
 import loginDataSchema from './validators/schemas';
+import decodeToken from '../utils/decodeToken';
 
 export default class UserService {
   private _model: ModelStatic<UserModel> = UserModel;
@@ -23,5 +24,12 @@ export default class UserService {
 
     const token = generateToken(result.dataValues);
     return token;
+  }
+
+  async getRole(token: string) {
+    const payload = decodeToken(token);
+    const user = await this._model.findOne({ where: { id: payload.id } });
+    if (!user) return null;
+    return user.role;
   }
 }

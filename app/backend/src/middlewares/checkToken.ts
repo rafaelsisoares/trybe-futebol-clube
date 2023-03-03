@@ -1,11 +1,11 @@
-import * as jwt from 'jsonwebtoken';
-import { Request, Response } from 'express';
-import 'dotenv/config';
-import { IUser } from '../interfaces/IUser';
+import { NextFunction, Request, Response } from 'express';
+import decodeToken from '../utils/decodeToken';
 
-const { JWT_SECRET } = process.env;
-
-export default function checkToken(req: Request, res: Response) {
+export default function checkToken(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { authorization } = req.headers;
 
   if (!authorization) {
@@ -13,11 +13,10 @@ export default function checkToken(req: Request, res: Response) {
   }
 
   try {
-    const result = jwt.verify(authorization, JWT_SECRET as jwt.Secret);
-    const { role } = result as IUser;
-    return res.status(200).json({ role });
+    decodeToken(authorization);
+    return next();
   } catch ({ message }) {
     console.error(message);
-    res.status(401).json({ message: 'Token must be a valid token' });
+    return res.status(401).json({ message: 'Token must be a valid token' });
   }
 }
