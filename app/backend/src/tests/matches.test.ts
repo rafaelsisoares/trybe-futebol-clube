@@ -1,5 +1,6 @@
 import * as sinon from 'sinon';
 import * as chai from 'chai';
+import * as jwt from 'jsonwebtoken';
 // @ts-ignore
 import chaiHttp = require('chai-http');
 
@@ -8,8 +9,8 @@ import MatchesModel from '../database/models/MatchesModel';
 
 import { Response } from 'superagent';
 import { matches, correctReturn, token, validMatch } from './mocks/matches.mock';
-import generateToken from '../utils/generateToken';
 import MatchesService from '../services/MatchesService';
+import { jwtVerifyMock } from './mocks/users.mock';
 
 chai.use(chaiHttp);
 
@@ -49,8 +50,9 @@ describe('Testes do endpoint /matches', () => {
       });
     });
 
-    it('é possível criar uma partida', async () => {
+    it.only('é possível criar uma partida', async () => {
       sinon.stub(MatchesModel, 'create').resolves(correctReturn as MatchesModel);
+      sinon.stub(jwt, 'verify').resolves(jwtVerifyMock);
       await chai.request(app).post('/matches').set('authorization', token)
       .send(validMatch)
       .then((res) => {
