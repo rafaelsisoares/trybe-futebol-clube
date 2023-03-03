@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import TeamService from '../services/TeamService';
 
-export default function checkTeams(req: Request, res: Response, next: NextFunction) {
+export default async function checkTeams(req: Request, res: Response, next: NextFunction) {
   const { homeTeamId, awayTeamId } = req.body;
   const teamService = new TeamService();
 
@@ -11,12 +11,11 @@ export default function checkTeams(req: Request, res: Response, next: NextFuncti
     });
   }
 
-  const homeTeam = teamService.findById(homeTeamId);
-  const awayTeam = teamService.findById(awayTeamId);
-
-  if (!homeTeam || !awayTeam) {
+  try {
+    await teamService.findById(homeTeamId);
+    await teamService.findById(awayTeamId);
+    return next();
+  } catch (_e) {
     return res.status(404).json({ message: 'There is no team with such id!' });
   }
-
-  return next();
 }
