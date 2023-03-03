@@ -81,6 +81,7 @@ describe('Testes do endpoint /matches', () => {
         status: 404,
         message: 'There is no team with such id!',
       } as unknown as MatchesModel);
+      sinon.stub(jwt, 'verify').resolves(jwtVerifyMock);
 
       await chai.request(app).post('/matches').set('authorization', token)
       .send(invalidMatches[1])
