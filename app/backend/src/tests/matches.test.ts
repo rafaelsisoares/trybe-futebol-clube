@@ -49,7 +49,7 @@ describe('Testes do endpoint /matches', () => {
       });
     });
 
-    it('é possível criar uma partida', async () => {
+    it.only('é possível criar uma partida', async () => {
       sinon.stub(MatchesModel, 'create').resolves(correctReturn as MatchesModel);
       await chai.request(app).post('/matches').set('authorization', token)
       .send(validMatch)

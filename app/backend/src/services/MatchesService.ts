@@ -1,4 +1,5 @@
 import { ModelStatic } from 'sequelize';
+import INewMatch from '../interfaces/INewMatch';
 import TeamModel from '../database/models/TeamModel';
 import MatchesModel from '../database/models/MatchesModel';
 import { IMatch } from '../interfaces/IMatch';
@@ -48,5 +49,18 @@ export default class MatchesService {
     await this._model.update({ homeTeamGoals, awayTeamGoals }, { where: { id } });
     const updatedMatch = await this._model.findOne({ where: { id } });
     return updatedMatch as IMatch;
+  }
+
+  async createMatch(newMatch: INewMatch): Promise<IMatch> {
+    const { homeTeamId, homeTeamGoals, awayTeamId, awayTeamGoals } = newMatch;
+    const result = await this._model.create({
+      homeTeamId,
+      homeTeamGoals,
+      awayTeamId,
+      awayTeamGoals,
+      inProgress: true,
+    });
+
+    return result;
   }
 }
