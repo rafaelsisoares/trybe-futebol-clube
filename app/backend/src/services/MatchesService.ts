@@ -4,7 +4,6 @@ import TeamModel from '../database/models/TeamModel';
 import MatchesModel from '../database/models/MatchesModel';
 import { IMatch } from '../interfaces/IMatch';
 import IMatchInput from '../interfaces/IMatchInput';
-import IErrorReturn from '../interfaces/IErrorReturn';
 import TeamService from './TeamService';
 
 export default class MatchesService {
@@ -54,28 +53,8 @@ export default class MatchesService {
     return updatedMatch as IMatch;
   }
 
-  private async findTeams(homeId: number, awayId: number): Promise<boolean> {
-    const homeTeam = await this._teamService.findById(homeId);
-    const awayTeam = await this._teamService.findById(awayId);
-
-    if (!homeTeam || !awayTeam) return false;
-
-    return true;
-  }
-
-  async createMatch(newMatch: INewMatch): Promise<IMatch | IErrorReturn> {
+  async createMatch(newMatch: INewMatch): Promise<IMatch> {
     const { homeTeamId, homeTeamGoals, awayTeamId, awayTeamGoals } = newMatch;
-
-    if (homeTeamId === awayTeamId) {
-      return {
-        status: 422,
-        message: 'It is not possible to create a match with two equal teams',
-      };
-    }
-
-    if (!this.findTeams(homeTeamId, awayTeamId)) {
-      return { status: 404, message: 'There is no team with such id!' };
-    }
 
     const result = await this._model.create({
       homeTeamId,
