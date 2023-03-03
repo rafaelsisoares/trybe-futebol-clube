@@ -328,6 +328,21 @@ const validMatch = {
   awayTeamGoals: 3,
 };
 
+const invalidMatches = [
+  {
+    homeTeamId: 1,
+    awayTeamId: 1,
+    homeTeamGoals: 1,
+    awayTeamGoals: 3,
+  },
+  {
+    homeTeamId: 1000,
+    awayTeamId: 2,
+    homeTeamGoals: 1,
+    awayTeamGoals: 3,
+  }
+]
+
 const correctReturn = {
   id: 1,
   homeTeamId: 1,
@@ -344,4 +359,5 @@ export {
   validMatch,
   correctReturn,
   token,
+  invalidMatches,
 }

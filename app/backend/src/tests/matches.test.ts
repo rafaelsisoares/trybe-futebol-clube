@@ -8,7 +8,7 @@ import { app } from '../app';
 import MatchesModel from '../database/models/MatchesModel';
 
 import { Response } from 'superagent';
-import { matches, correctReturn, token, validMatch } from './mocks/matches.mock';
+import { matches, correctReturn, token, validMatch, invalidMatches } from './mocks/matches.mock';
 import MatchesService from '../services/MatchesService';
 import { jwtVerifyMock } from './mocks/users.mock';
 
@@ -50,7 +50,7 @@ describe('Testes do endpoint /matches', () => {
       });
     });
 
-    it.only('é possível criar uma partida', async () => {
+    it('é possível criar uma partida', async () => {
       sinon.stub(MatchesModel, 'create').resolves(correctReturn as MatchesModel);
       sinon.stub(jwt, 'verify').resolves(jwtVerifyMock);
       await chai.request(app).post('/matches').set('authorization', token)
@@ -58,7 +58,36 @@ describe('Testes do endpoint /matches', () => {
       .then((res) => {
         expect(res).to.have.status(201);
         expect(res.body).to.deep.eq(correctReturn);
-      })
+      });
+    });
+
+    it('não é possível criar uma partida entre dois times iguais', async () => {
+      sinon.stub(MatchesModel, 'create').resolves({
+        status: 422,
+        message: 'It is not possible to create a match with two equal teams'
+      } as unknown as MatchesModel);
+      sinon.stub(jwt, 'verify').resolves(jwtVerifyMock);
+
+      await chai.request(app).post('/matches').set('authorization', token)
+      .send(invalidMatches[0])
+      .then((res) => {
+        expect(res).to.have.status(422);
+        expect(res.body).to.deep.eq({ message: 'It is not possible to create a match with two equal teams' });
+      });
+    });
+
+    it('não é possível criar uma partida com um time inexistente', async () => {
+      sinon.stub(MatchesModel, 'create').resolves({
+        status: 404,
+        message: 'There is no team with such id!',
+      } as unknown as MatchesModel);
+
+      await chai.request(app).post('/matches').set('authorization', token)
+      .send(invalidMatches[1])
+      .then((res) => {
+        expect(res).to.have.status(404);
+        expect(res.body).to.deep.eq({ message: 'There is no team with such id!' });
+      });
     });
   });
 });
