@@ -49,13 +49,13 @@ describe('Testes do endpoint /matches', () => {
       });
     });
 
-    it.only('é possível criar uma partida', async () => {
+    it('é possível criar uma partida', async () => {
       sinon.stub(MatchesModel, 'create').resolves(correctReturn as MatchesModel);
       await chai.request(app).post('/matches').set('authorization', token)
       .send(validMatch)
       .then((res) => {
         expect(res).to.have.status(201);
-        expect(res.body).to.be.eq(correctReturn);
+        expect(res.body).to.deep.eq(correctReturn);
       })
     });
   });
