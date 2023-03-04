@@ -2,11 +2,11 @@ export default interface ILeaderboard {
   name: string;
   totalPoints: number;
   totalGames: number;
-  totalVictories: Promise<number>;
-  totalDraws: Promise<number>;
-  totalLosses: Promise<number>;
-  goalsFavor: Promise<number>;
-  goalsOwn: Promise<number>;
+  totalVictories: number;
+  totalDraws: number;
+  totalLosses: number;
+  goalsFavor: number;
+  goalsOwn: number;
 }
 
 export interface ILeaderboardExtended extends ILeaderboard {
