@@ -7,17 +7,26 @@ export default class LeaderboardService {
   private _team: ModelStatic<TeamModel> = TeamModel;
   private _matches: ModelStatic<MatchesModel> = MatchesModel;
   private _points = 0;
+  private _allMatches: MatchesModel[] = [];
+
+  private async getAllMatches(): Promise<void> {
+    this._allMatches = await this._matches.findAll();
+  }
+
+  private filterMatches(id: number, query: 'homeTeamId' | 'awayTeamId') {
+    return this._allMatches.filter(({ homeTeamId, awayTeamId, inProgress }) => (
+      query === 'homeTeamId' ? homeTeamId === id : awayTeamId === id
+    ) && inProgress === false);
+  }
 
   private getPoints(params: number, query: 'V' | 'D'): void {
     this._points += query === 'V' ? params * 3 : params;
   }
 
-  private async getVictories(id: number, query: 'homeTeamId' | 'awayTeamId'): Promise<number> {
-    const matches = await this._matches.findAll({
-      where: { [query]: id },
-    });
+  private getVictories(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
+    const targetMatches = this.filterMatches(id, query);
 
-    const winMatches = matches
+    const winMatches = targetMatches
       .filter(({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals > awayTeamGoals)
       .length;
 
@@ -26,12 +35,10 @@ export default class LeaderboardService {
     return winMatches;
   }
 
-  private async getDraws(id: number, query: 'homeTeamId' | 'awayTeamId'): Promise<number> {
-    const matches = await this._matches.findAll({
-      where: { [query]: id },
-    });
+  private getDraws(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
+    const targetMatches = this.filterMatches(id, query);
 
-    const drawMatches = matches
+    const drawMatches = targetMatches
       .filter(({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals === awayTeamGoals)
       .length;
 
@@ -39,18 +46,16 @@ export default class LeaderboardService {
     return drawMatches;
   }
 
-  private async getLosses(id: number, query: 'homeTeamId' | 'awayTeamId'): Promise<number> {
-    const matches = await this._matches.findAll({
-      where: { [query]: id },
-    });
+  private getLosses(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
+    const matches = this.filterMatches(id, query);
 
     return matches
       .filter(({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals < awayTeamGoals)
       .length;
   }
 
-  private async getGoalsFavor(id: number, query: 'homeTeamId' | 'awayTeamId'): Promise<number> {
-    const matches = await this._matches.findAll({ where: { id } });
+  private getGoalsFavor(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
+    const matches = this.filterMatches(id, query);
     return matches.reduce((total, { homeTeamGoals, awayTeamGoals }) => {
       if (query === 'homeTeamId') return total + homeTeamGoals;
 
@@ -58,8 +63,8 @@ export default class LeaderboardService {
     }, 0);
   }
 
-  private async getGoalsOwn(id: number, query: 'homeTeamId' | 'awayTeamId'): Promise<number> {
-    const matchs = await this._matches.findAll({ where: { id } });
+  private getGoalsOwn(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
+    const matchs = this.filterMatches(id, query);
     return matchs.reduce((total, { homeTeamGoals, awayTeamGoals }) => {
       if (query === 'homeTeamId') return total + awayTeamGoals;
 
@@ -68,19 +73,21 @@ export default class LeaderboardService {
   }
 
   async leaderboard(query: 'homeTeamId' | 'awayTeamId'): Promise<ILeaderboard[]> {
+    await this.getAllMatches();
     const teams = await this._team.findAll();
-    const matches = await this._matches.findAll();
-    return teams.map(({ id, teamName: name }) => ({
-      name,
-      totalPoints: this._points,
-      totalGames: matches.filter((match) => (query.includes('homeTeamId')
-        ? match.homeTeamId === id
-        : match.awayTeamId === id)).length,
-      totalVictories: this.getVictories(id, query),
-      totalDraws: this.getDraws(id, query),
-      totalLosses: this.getLosses(id, query),
-      goalsFavor: this.getGoalsFavor(id, query),
-      goalsOwn: this.getGoalsOwn(id, query),
-    }));
+
+    return teams.map(({ id, teamName: name }) => {
+      this._points = 0;
+      return {
+        name,
+        totalGames: this.filterMatches(id, query).length,
+        totalVictories: this.getVictories(id, query),
+        totalDraws: this.getDraws(id, query),
+        totalLosses: this.getLosses(id, query),
+        goalsFavor: this.getGoalsFavor(id, query),
+        goalsOwn: this.getGoalsOwn(id, query),
+        totalPoints: this._points,
+      };
+    });
   }
 }
