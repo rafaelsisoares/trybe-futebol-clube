@@ -1,7 +1,7 @@
 import { ModelStatic } from 'sequelize';
 import MatchesModel from '../database/models/MatchesModel';
 import TeamModel from '../database/models/TeamModel';
-import ILeaderboard from '../interfaces/ILeaderboard';
+import { ILeaderboardExtended } from '../interfaces/ILeaderboard';
 
 export default class LeaderboardService {
   private _team: ModelStatic<TeamModel> = TeamModel;
@@ -14,9 +14,11 @@ export default class LeaderboardService {
   }
 
   private filterMatches(id: number, query: 'homeTeamId' | 'awayTeamId') {
-    return this._allMatches.filter(({ homeTeamId, awayTeamId, inProgress }) => (
-      query === 'homeTeamId' ? homeTeamId === id : awayTeamId === id
-    ) && inProgress === false);
+    return this._allMatches.filter(
+      ({ homeTeamId, awayTeamId, inProgress }) =>
+        (query === 'homeTeamId' ? homeTeamId === id : awayTeamId === id)
+        && inProgress === false,
+    );
   }
 
   private getPoints(params: number, query: 'V' | 'D'): void {
@@ -26,9 +28,9 @@ export default class LeaderboardService {
   private getVictories(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
     const targetMatches = this.filterMatches(id, query);
 
-    const winMatches = targetMatches
-      .filter(({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals > awayTeamGoals)
-      .length;
+    const winMatches = targetMatches.filter(
+      ({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals > awayTeamGoals,
+    ).length;
 
     this.getPoints(winMatches, 'V');
 
@@ -38,9 +40,9 @@ export default class LeaderboardService {
   private getDraws(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
     const targetMatches = this.filterMatches(id, query);
 
-    const drawMatches = targetMatches
-      .filter(({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals === awayTeamGoals)
-      .length;
+    const drawMatches = targetMatches.filter(
+      ({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals === awayTeamGoals,
+    ).length;
 
     this.getPoints(drawMatches, 'D');
     return drawMatches;
@@ -49,12 +51,15 @@ export default class LeaderboardService {
   private getLosses(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
     const matches = this.filterMatches(id, query);
 
-    return matches
-      .filter(({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals < awayTeamGoals)
-      .length;
+    return matches.filter(
+      ({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals < awayTeamGoals,
+    ).length;
   }
 
-  private getGoalsFavor(id: number, query: 'homeTeamId' | 'awayTeamId'): number {
+  private getGoalsFavor(
+    id: number,
+    query: 'homeTeamId' | 'awayTeamId',
+  ): number {
     const matches = this.filterMatches(id, query);
     return matches.reduce((total, { homeTeamGoals, awayTeamGoals }) => {
       if (query === 'homeTeamId') return total + homeTeamGoals;
@@ -72,11 +77,89 @@ export default class LeaderboardService {
     }, 0);
   }
 
-  async leaderboard(query: 'homeTeamId' | 'awayTeamId'): Promise<ILeaderboard[]> {
+  private calculateEfficiency(
+    id: number,
+    query: 'homeTeamId' | 'awayTeamId',
+  ): number {
+    const matches = this.filterMatches(id, query);
+    const efficiency = (this._points / (matches.length * 3)) * 100;
+    return +efficiency.toFixed(2);
+  }
+
+  private static sortByGoalsOwn(
+    team1: ILeaderboardExtended,
+    team2: ILeaderboardExtended,
+  ): ILeaderboardExtended {
+    return team1.goalsOwn > team2.goalsOwn ? team2 : team1;
+  }
+
+  private static sortByGoalsFavor(
+    team1: ILeaderboardExtended,
+    team2: ILeaderboardExtended,
+  ): ILeaderboardExtended {
+    if (team1.goalsFavor === team2.goalsFavor) {
+      return LeaderboardService.sortByGoalsOwn(team1, team2);
+    }
+
+    return team1.goalsFavor > team2.goalsFavor
+      ? team2
+      : team1;
+  }
+
+  private static sortByGoalsBalance(
+    team1: ILeaderboardExtended,
+    team2: ILeaderboardExtended,
+  ): ILeaderboardExtended {
+    if (team1.goalsBalance === team2.goalsBalance) {
+      return LeaderboardService.sortByGoalsFavor(team1, team2);
+    }
+
+    return team1.goalsBalance > team2.goalsBalance
+      ? team2
+      : team1;
+  }
+
+  private static sortByVictories(
+    team1: ILeaderboardExtended,
+    team2: ILeaderboardExtended,
+  ): ILeaderboardExtended {
+    if (team1.totalVictories === team2.totalVictories) {
+      return LeaderboardService.sortByGoalsBalance(team1, team2);
+    }
+
+    return team1.totalVictories > team2.totalVictories
+      ? team2
+      : team1;
+  }
+
+  private static sortLeaderboard(
+    leaderboard: ILeaderboardExtended[],
+  ): ILeaderboardExtended[] {
+    const table = leaderboard;
+    let team: ILeaderboardExtended | null = null;
+    for (let i = 0; i < table.length; i += 1) {
+      for (let j = 0; j < (table.length - i - 1); j += 1) {
+        if (table[j].totalPoints === table[j + 1].totalPoints) {
+          team = LeaderboardService.sortByVictories(table[j], table[j + 1]);
+        }
+
+        if (table[j].totalPoints > table[j + 1].totalPoints
+          || team === table[j + 1]) {
+          const swap = table[j];
+          table[j] = table[j + 1];
+          table[j + 1] = swap;
+        }
+      }
+    }
+
+    return table;
+  }
+
+  async leaderboard(query: 'homeTeamId' | 'awayTeamId'): Promise<ILeaderboardExtended[]> {
     await this.getAllMatches();
     const teams = await this._team.findAll();
 
-    return teams.map(({ id, teamName: name }) => {
+    const leaderboard = teams.map(({ id, teamName: name }) => {
       this._points = 0;
       return {
         name,
@@ -87,7 +170,11 @@ export default class LeaderboardService {
         goalsFavor: this.getGoalsFavor(id, query),
         goalsOwn: this.getGoalsOwn(id, query),
         totalPoints: this._points,
+        goalsBalance: this.getGoalsFavor(id, query) - this.getGoalsOwn(id, query),
+        efficiency: this.calculateEfficiency(id, query),
       };
     });
+
+    return LeaderboardService.sortLeaderboard(leaderboard).reverse();
   }
 }
