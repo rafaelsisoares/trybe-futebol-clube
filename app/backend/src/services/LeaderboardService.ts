@@ -102,7 +102,7 @@ export default class LeaderboardService {
       return LeaderboardService.sortByGoalsOwn(team1, team2);
     }
 
-    return team1.goalsFavor > team2.goalsFavor
+    return team1.goalsFavor < team2.goalsFavor
       ? team2
       : team1;
   }
@@ -115,7 +115,7 @@ export default class LeaderboardService {
       return LeaderboardService.sortByGoalsFavor(team1, team2);
     }
 
-    return team1.goalsBalance > team2.goalsBalance
+    return team1.goalsBalance < team2.goalsBalance
       ? team2
       : team1;
   }
@@ -128,7 +128,7 @@ export default class LeaderboardService {
       return LeaderboardService.sortByGoalsBalance(team1, team2);
     }
 
-    return team1.totalVictories > team2.totalVictories
+    return team1.totalVictories < team2.totalVictories
       ? team2
       : team1;
   }
@@ -144,7 +144,7 @@ export default class LeaderboardService {
           team = LeaderboardService.sortByVictories(table[j], table[j + 1]);
         }
 
-        if (table[j].totalPoints > table[j + 1].totalPoints
+        if (table[j].totalPoints < table[j + 1].totalPoints
           || team === table[j + 1]) {
           const swap = table[j];
           table[j] = table[j + 1];
@@ -153,7 +153,7 @@ export default class LeaderboardService {
       }
     }
 
-    return table;
+    return table.sort((a, b) => b.totalPoints - a.totalPoints);
   }
 
   async leaderboard(query: 'homeTeamId' | 'awayTeamId'): Promise<ILeaderboardExtended[]> {
@@ -176,6 +176,6 @@ export default class LeaderboardService {
       };
     });
 
-    return LeaderboardService.sortLeaderboard(leaderboard).reverse();
+    return LeaderboardService.sortLeaderboard(leaderboard);
   }
 }
