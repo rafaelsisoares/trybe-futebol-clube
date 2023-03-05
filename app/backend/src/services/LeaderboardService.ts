@@ -10,14 +10,15 @@ export default class LeaderboardService {
   private _allMatches: MatchesModel[] = [];
 
   private async getAllMatches(): Promise<void> {
-    this._allMatches = await this._matches.findAll();
+    this._allMatches = await this._matches.findAll({
+      where: { inProgress: false },
+    });
   }
 
   private filterMatches(id: number, query: 'homeTeamId' | 'awayTeamId') {
     return this._allMatches.filter(
-      ({ homeTeamId, awayTeamId, inProgress }) =>
-        (query === 'homeTeamId' ? homeTeamId === id : awayTeamId === id)
-        && inProgress === false,
+      ({ homeTeamId, awayTeamId }) =>
+        (query === 'homeTeamId' ? homeTeamId === id : awayTeamId === id),
     );
   }
 
