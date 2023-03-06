@@ -30,7 +30,11 @@ export default class LeaderboardService {
     const targetMatches = this.filterMatches(id, query);
 
     const winMatches = targetMatches.filter(
-      ({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals > awayTeamGoals,
+      ({ homeTeamGoals, awayTeamGoals }) => (
+        query === 'homeTeamId'
+          ? homeTeamGoals > awayTeamGoals
+          : awayTeamGoals > homeTeamGoals
+      ),
     ).length;
 
     this.getPoints(winMatches, 'V');
@@ -42,7 +46,11 @@ export default class LeaderboardService {
     const targetMatches = this.filterMatches(id, query);
 
     const drawMatches = targetMatches.filter(
-      ({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals === awayTeamGoals,
+      ({ homeTeamGoals, awayTeamGoals }) => (
+        query === 'homeTeamId'
+          ? homeTeamGoals === awayTeamGoals
+          : awayTeamGoals === homeTeamGoals
+      ),
     ).length;
 
     this.getPoints(drawMatches, 'D');
@@ -53,7 +61,11 @@ export default class LeaderboardService {
     const matches = this.filterMatches(id, query);
 
     return matches.filter(
-      ({ homeTeamGoals, awayTeamGoals }) => homeTeamGoals < awayTeamGoals,
+      ({ homeTeamGoals, awayTeamGoals }) => (
+        query === 'homeTeamId'
+          ? homeTeamGoals < awayTeamGoals
+          : awayTeamGoals < homeTeamGoals
+      ),
     ).length;
   }
 
