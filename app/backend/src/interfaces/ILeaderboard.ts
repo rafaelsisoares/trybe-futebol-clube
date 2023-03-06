@@ -13,3 +13,5 @@ export interface ILeaderboardExtended extends ILeaderboard {
   goalsBalance: number;
   efficiency: number;
 }
+
+export type TQuery = ('homeTeamId' | 'awayTeamId' | undefined);
