@@ -90,13 +90,13 @@ export default class LeaderboardService {
     }, 0);
   }
 
-  private calculateEfficiency(
-    id: number,
-    query: 'homeTeamId' | 'awayTeamId',
-  ): number {
-    const matches = this.filterMatches(id, query);
-    const efficiency = (this._points / (matches.length * 3)) * 100;
+  private static calculateEfficiency(points: number, games: number): number {
+    const efficiency = (points / (games * 3)) * 100;
     return +efficiency.toFixed(2);
+  }
+
+  private static getGoalsBalance(gp: number, gc: number): number {
+    return gp - gc;
   }
 
   private static sortByGoalsOwn(
@@ -172,7 +172,7 @@ export default class LeaderboardService {
     await this.getAllMatches();
     const teams = await this._team.findAll();
 
-    const leaderboard = teams.map(({ id, teamName: name }) => {
+    const leaderboard: ILeaderboardExtended[] = teams.map(({ id, teamName: name }, i) => {
       this._points = 0;
       return {
         name,
@@ -184,10 +184,33 @@ export default class LeaderboardService {
         goalsOwn: this.getGoalsOwn(id, query),
         totalPoints: this._points,
         goalsBalance: this.getGoalsFavor(id, query) - this.getGoalsOwn(id, query),
-        efficiency: this.calculateEfficiency(id, query),
+        efficiency: LeaderboardService.calculateEfficiency(this._points, leaderboard[i].totalGames),
       };
     });
 
     return LeaderboardService.sortLeaderboard(leaderboard);
+  }
+
+  async generalLeaderboard(): Promise<ILeaderboardExtended[]> {
+    const home = await this.leaderboard('homeTeamId');
+    const away = await this.leaderboard('awayTeamId');
+
+    const general: ILeaderboardExtended[] = home.map((team, i) => ({
+      name: team.name,
+      totalGames: team.totalGames + away[i].totalGames,
+      totalVictories: team.totalVictories + away[i].totalVictories,
+      totalDraws: team.totalDraws + away[i].totalDraws,
+      totalLosses: team.totalLosses + away[i].totalLosses,
+      goalsFavor: team.goalsFavor + away[i].goalsFavor,
+      goalsOwn: team.goalsOwn + away[i].goalsOwn,
+      totalPoints: team.totalPoints + away[i].totalPoints,
+      goalsBalance: LeaderboardService.getGoalsBalance(general[i].goalsFavor, general[i].goalsOwn),
+      efficiency: LeaderboardService.calculateEfficiency(
+        general[i].totalPoints,
+        general[i].totalGames,
+      ),
+    }));
+
+    return LeaderboardService.sortLeaderboard(general);
   }
 }
