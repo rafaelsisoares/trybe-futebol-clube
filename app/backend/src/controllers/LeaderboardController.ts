@@ -13,4 +13,9 @@ export default class LeaderboardController {
     const leaderboard = await this._service.leaderboard('awayTeamId');
     return res.status(200).json(leaderboard);
   }
+
+  async getGeneralLeaderboard(_req: Request, res: Response): Promise<Response> {
+    const leaderboard = await this._service.generalLeaderboard();
+    return res.status(200).json(leaderboard);
+  }
 }
