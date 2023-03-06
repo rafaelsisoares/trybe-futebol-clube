@@ -16,7 +16,14 @@ describe('Testes do endpoint /leaderboard', () => {
       await chai.request(app).get('/leaderboard/home').then((res) => {
         expect(res).to.have.status(200);
         expect(res.body).to.be.an('array');
-      })
+      });
+    });
+
+    it('retorna a classificacao dos times visitantes', async () => {
+      await chai.request(app).get('/leaderboard/away').then((res) => {
+        expect(res).to.have.status(200);
+        expect(res.body).to.be.an('array');
+      });
     });
   });
 });
