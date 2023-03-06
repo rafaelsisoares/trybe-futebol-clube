@@ -25,5 +25,12 @@ describe('Testes do endpoint /leaderboard', () => {
         expect(res.body).to.be.an('array');
       });
     });
+
+    it('retorna a classificacao geral', async () => {
+      await chai.request(app).get('/leaderboard').then((res) => {
+        expect(res).to.have.status(200);
+        expect(res.body).to.be.an('array');
+      });
+    });
   });
 });
