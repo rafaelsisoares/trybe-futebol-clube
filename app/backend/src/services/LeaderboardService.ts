@@ -13,7 +13,6 @@ export default class LeaderboardService {
   private _teams: ITeam[] = [];
 
   constructor() {
-    this.getAllMatches();
     this.getAllTeams();
   }
 
@@ -28,11 +27,13 @@ export default class LeaderboardService {
   }
 
   async leaderboard(query: TQuery): Promise<ILeaderboardExtended[]> {
+    this.getAllMatches();
     const leaderboard = getLeaderboard(this._allMatches, this._teams, query);
     return sortLeaderboard(leaderboard);
   }
 
   async generalLeaderboard(): Promise<ILeaderboardExtended[]> {
+    this.getAllMatches();
     const generalLeaderboard = getGeneralLeaderboard(this._allMatches, this._teams);
     return sortLeaderboard(generalLeaderboard);
   }
