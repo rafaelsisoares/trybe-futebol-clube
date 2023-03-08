@@ -11,6 +11,7 @@ import { Response } from 'superagent';
 import { matches, correctReturn, token, validMatch, invalidMatches } from './mocks/matches.mock';
 import MatchesService from '../services/MatchesService';
 import { jwtVerifyMock } from './mocks/users.mock';
+import { IMatch } from '../interfaces/IMatch';
 
 chai.use(chaiHttp);
 
@@ -20,33 +21,25 @@ describe('Testes do endpoint /matches', () => {
   const inProgress = matches.filter((match) => match.inProgress === 1);
   const finished = matches.filter((match) => match.inProgress === 0);
   describe('Testa se', () => {
-    /* before(async () => {
-      sinon.stub(MatchesModel, "findAll")
-       .resolves(matches as unknown as MatchesModel[]);
-       sinon.stub(MatchesModel, "findAll")
-       .resolves(inProgress as unknown as MatchesModel[]);
-        sinon.stub(MatchesModel, "findAll")
-        .resolves(finished as unknown as MatchesModel[]);
-   }); */
- 
     afterEach(()=>{
-    /* (MatchesModel.findAll as sinon.SinonStub).restore();
-    (MatchesModel.findAll as sinon.SinonStub).restore(); */
     sinon.restore();
-   });
+  });
 
     it('retorna todas as partidas', async () => {
+      sinon.stub(MatchesModel, 'findAll').resolves(matches as unknown as MatchesModel[]);
       await chai.request(app).get('/matches').then((res) => {
         expect(res).to.have.status(200);
         expect(res.body).to.be.an('array');
+        expect(res.body).to.deep.equal(matches);
       });
     });
 
     it('retorna todas as partidas em andamento', async () => {
+      sinon.stub(MatchesModel, 'findAll').resolves(matches as unknown as MatchesModel[])
       await chai.request(app).get('/matches?inProgress=true').then((res) => {
         expect(res).to.have.status(200);
         expect(res.body).to.be.an('array');
-        expect(res.body).to.be.eq(inProgress);
+        expect(res.body).to.deep.eq(inProgress);
       });
     });
 
