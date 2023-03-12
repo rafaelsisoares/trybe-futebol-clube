@@ -1,11 +1,11 @@
 import * as sinon from 'sinon';
 import * as chai from 'chai';
+import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 // @ts-ignore
 import chaiHttp = require('chai-http');
 
 import { app } from '../app';
-import Example from '../database/models/ExampleModel';
 import UserModel from '../database/models/UserModel';
 
 import { Response } from 'superagent';
@@ -24,11 +24,12 @@ describe('Testes do endpoint /login', () => {
       role: 'admin',
       email: 'admin@admin.com',
       password: 'secret_admin'
-    } as UserModel)
+    } as UserModel);
+    sinon.stub(bcrypt, 'compareSync').resolves(true);
   })
 
   afterEach(() => {
-    (UserModel.findOne as sinon.SinonStub).restore();
+    sinon.restore();
   })
 
   describe('Testa se', () => {
@@ -85,14 +86,8 @@ describe('Testes do endpoint /login', () => {
   });
   
   describe('Testes do endpoint /login/role', () => {
-    before(() => {
-      sinon.stub(jwt, 'sign').resolves(token);
-      sinon.stub(jwt, 'verify').resolves(jwtVerifyMock);
-    });
-    
-    after(() => {
-      (jwt.sign as sinon.SinonStub).restore();
-      (jwt.verify as sinon.SinonStub).restore();
+    afterEach(() => {
+      sinon.restore();
     })
     describe('Testa se', () => {
       it('retorna uma mensagem de erro se não houver token', async () => {
@@ -115,12 +110,13 @@ describe('Testes do endpoint /login', () => {
         });
 
         it('retorna o tipo de usuario se o token for valido', async () => {
+          sinon.stub(jwt, 'verify').resolves(jwtVerifyMock);
           await chai.request(app)
           .get('/login/role')
           .set('Authorization', token)
           .then((res) => {
             expect(res).to.have.status(200);
-            expect(res.body).to.be.eq({ role: 'admin' });
+            expect(res.body).to.deep.eq({ role: 'admin' });
           });
         });
       });

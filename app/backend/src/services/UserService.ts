@@ -27,7 +27,7 @@ export default class UserService {
   }
 
   async getRole(token: string) {
-    const payload = decodeToken(token);
+    const payload = await decodeToken(token);
     const user = await this._model.findOne({ where: { id: payload.id } });
     if (!user) return null;
     return user.role;
