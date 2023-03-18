@@ -43,6 +43,7 @@
   * TypeScript,
   * MySQL,
   * Sequelize,
+  * Docker,
   * JsonWebToken,
   * Mocha,
   * Chai,
