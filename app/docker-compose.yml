@@ -17,7 +17,7 @@ services:
       retries: 5
   backend:
     container_name: app_backend
-    build: ./backend
+    build: ./api
     ports:
       - 3001:3001
     platform: linux/x86_64
@@ -25,7 +25,7 @@ services:
     # Caso queira que o container esteja atualizado durante o desenvolvimento, sem que você precise ficar fazendo down e up dos containers, descomente as 3 linhas abaixo
     command: dev 
     volumes: 
-      - ./backend/src:/app-backend/src
+      - ./api/src:/app-backend/src
     depends_on:
       db:
         condition: service_healthy
