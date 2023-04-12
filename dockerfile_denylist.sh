@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOCKERFILE_BACKEND="$(cat ./app/api/Dockerfile)"
+DOCKERFILE_BACKEND="$(cat ./app/backend/Dockerfile)"
 DOCKERFILE_FRONTEND="$(cat ./app/frontend/Dockerfile)"
 
 DENY=(
@@ -8,7 +8,7 @@ DENY=(
 )
 
 echo "--------------------------"
-echo '-app/api/Dockerfile---'
+echo '-app/backend/Dockerfile---'
 echo "--------------------------"
 echo "$DOCKERFILE_BACKEND"
 echo "--------------------------"
@@ -22,7 +22,7 @@ error=0
 
 for I in "${DENY[@]}"; do
   if [[ "$DOCKERFILE_BACKEND" == *"$I"* ]]; then
-    echo "ERRO em 'app/api/Dockerfile': O comando '${I}' não é autorizado"
+    echo "ERRO em 'app/backend/Dockerfile': O comando '${I}' não é autorizado"
     error=1
   fi
   if [[ "$DOCKERFILE_FRONTEND" == *"$I"* ]]; then
